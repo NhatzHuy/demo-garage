@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoCare Pro - Hệ Thống Quản Lý Gara Ô Tô</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1E293B;
+      --primary-light: #334155;
+      --accent: #2563EB;
+      --accent-hover: #1D4ED8;
+      --accent-glow: rgba(37, 99, 235, 0.35);
+      --success: #10B981;
+      --success-light: #ECFDF5;
+      --warning: #F59E0B;
+      --warning-light: #FFFBEB;
+      --danger: #EF4444;
+      --danger-light: #FEF2F2;
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --border: #E2E8F0;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --text-light: #94A3B8;
+      --radius: 12px;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+      --sidebar-w: 260px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(120%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(120%);
+        opacity: 0;
+      }
+    }
+
+    @keyframes rowHighlight {
+      0% {
+        background-color: rgba(37, 99, 235, 0.15);
+      }
+      100% {
+        background-color: transparent;
+      }
+    }
+
+    .animate-fadeInUp {
+      animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Layout */
+    .app-layout {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* Sticky Sidebar */
+    .sidebar {
+      width: var(--sidebar-w);
+      background-color: var(--primary);
+      color: #FFFFFF;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 40;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .brand-header {
+      padding: 24px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), #38BDF8);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px var(--accent-glow);
+    }
+
+    .brand-icon svg {
+      width: 22px;
+      height: 22px;
+      color: #FFFFFF;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+    }
+
+    .brand-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .nav-menu {
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-light);
+      padding: 8px 12px 4px;
+      font-weight: 700;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      color: #94A3B8;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      color: #FFFFFF;
+      background-color: rgba(255, 255, 255, 0.06);
+      transform: translateX(3px);
+    }
+
+    .nav-item.active {
+      color: #FFFFFF;
+      background: linear-gradient(90deg, rgba(37, 99, 235, 0.25) 0%, rgba(37, 99, 235, 0.05) 100%);
+      font-weight: 600;
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 3.5px;
+      background-color: var(--accent);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .nav-item svg {
+      width: 19px;
+      height: 19px;
+      flex-shrink: 0;
+    }
+
+    .badge-counter {
+      margin-left: auto;
+      background: rgba(37, 99, 235, 0.3);
+      color: #60A5FA;
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      font-weight: 700;
+    }
+
+    /* Sidebar Footer / User Profile */
+    .user-profile {
+      padding: 16px 18px;
+      background: rgba(15, 23, 42, 0.6);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #F8FAFC;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: 2px solid #475569;
+    }
+
+    .avatar-status {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 10px;
+      height: 10px;
+      background-color: var(--success);
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .user-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #FFFFFF;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .user-role {
+      font-size: 0.74rem;
+      color: #38BDF8;
+      font-weight: 500;
+    }
+
+    /* Main Content Area */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow-y: auto;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    .mobile-menu-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .page-heading {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-banner-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #ECFDF5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+      padding: 3px 9px;
+      border-radius: 9999px;
+      font-size: 0.74rem;
+      font-weight: 600;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--success);
+      animation: pulseGlow 2s infinite;
+    }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Quick Search Bar */
+    .search-box {
+      position: relative;
+      width: 280px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      pointer-events: none;
+      display: flex;
+    }
+
+    .search-icon svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px 8px 36px;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background-color: var(--bg);
+      color: var(--text-main);
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background-color: #FFFFFF;
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .btn-top-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: #FFFFFF;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-top-action:hover {
+      background-color: var(--bg);
+      border-color: #CBD5E1;
+    }
+
+    /* Content Area */
+    .content-container {
+      padding: 24px 28px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 1400px;
+      width: 100%;
+    }
+
+    /* Section 1: Quick Stats Overview */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .stat-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+
+    .stat-card.stat-pending::before { background-color: var(--text-muted); }
+    .stat-card.stat-in-progress::before { background-color: var(--warning); }
+    .stat-card.stat-completed::before { background-color: var(--success); }
+    .stat-card.stat-revenue::before { background-color: var(--accent); }
+
+    .stat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stat-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-icon svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    .stat-pending .stat-icon { background: #F1F5F9; color: var(--text-muted); }
+    .stat-in-progress .stat-icon { background: var(--warning-light); color: var(--warning); }
+    .stat-completed .stat-icon { background: var(--success-light); color: var(--success); }
+    .stat-revenue .stat-icon { background: #EFF6FF; color: var(--accent); }
+
+    .stat-value {
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .stat-trend {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .trend-up {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    /* Section 2: Form Tiếp Nhận Xe */
+    .form-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .card-header-styled {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(to right, #FFFFFF, #F8FAFC);
+    }
+
+    .card-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-icon-pill {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #EFF6FF;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-icon-pill svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .card-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .form-body {
+      padding: 22px;
+    }
+
+    .intake-form {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .col-customer { grid-column: span 3; }
+    .col-phone { grid-column: span 2; }
+    .col-plate { grid-column: span 2; }
+    .col-model { grid-column: span 3; }
+    .col-status { grid-column: span 2; }
+    .col-btn { grid-column: span 12; display: flex; justify-content: flex-end; margin-top: 6px; }
+
+    .form-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .required-star {
+      color: var(--danger);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-field, .select-field {
+      width: 100%;
+      height: 42px;
+      padding: 8px 12px;
+      font-size: 0.88rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background-color: #FFFFFF;
+      color: var(--text-main);
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .input-field:focus, .select-field:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .plate-input {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #0F172A;
+      background-color: #F8FAFC;
+    }
+
+    /* Buttons & Ripple Effect */
+    .btn-primary {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 22px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      background-color: var(--accent);
+      color: #FFFFFF;
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--accent-glow);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+      transform: scale(1.02);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Ripple element */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: rippleAnimation 0.6s linear;
+      background-color: rgba(255, 255, 255, 0.5);
+      pointer-events: none;
+    }
+
+    @keyframes rippleAnimation {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* Section 3: Data Table ("Danh sách xe đang xử lý") */
+    .table-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .table-actions-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      background: var(--bg);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .filter-tab {
+      padding: 5px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .filter-tab.active {
+      background: #FFFFFF;
+      color: var(--text-main);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    .data-table th {
+      background-color: #F8FAFC;
+      color: #475569;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-main);
+      vertical-align: middle;
+      transition: background-color 0.15s ease;
+    }
+
+    .data-table tbody tr {
+      transition: background-color 0.15s ease;
+    }
+
+    .data-table tbody tr:hover td {
+      background-color: #F1F5F9;
+    }
+
+    .row-newly-added td {
+      animation: rowHighlight 2.5s ease-out;
+    }
+
+    .plate-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.82rem;
+      background-color: #0F172A;
+      color: #F8FAFC;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.06em;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+
+    .customer-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .customer-name {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .customer-phone {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .vehicle-model {
+      font-weight: 500;
+      color: #334155;
+    }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .status-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    /* Green - Completed */
+    .badge-completed {
+      background-color: var(--success-light);
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+    }
+    .badge-completed .status-badge-dot {
+      background-color: var(--success);
+    }
+
+    /* Yellow/Amber - In Progress (with soft pulsing glow) */
+    .badge-in-progress {
+      background-color: var(--warning-light);
+      color: #92400E;
+      border: 1px solid #FDE68A;
+      animation: pulseGlow 2.5s infinite;
+    }
+    .badge-in-progress .status-badge-dot {
+      background-color: var(--warning);
+    }
+
+    /* Gray - Pending */
+    .badge-pending {
+      background-color: #F1F5F9;
+      color: #475569;
+      border: 1px solid #E2E8F0;
+    }
+    .badge-pending .status-badge-dot {
+      background-color: #94A3B8;
+    }
+
+    .mechanic-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mechanic-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      color: #334155;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mechanic-name {
+      font-size: 0.84rem;
+      color: #334155;
+    }
+
+    /* Action Buttons in Table */
+    .table-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-action-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background-color: #FFFFFF;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action-icon:hover {
+      background-color: var(--bg);
+      color: var(--accent);
+      border-color: #CBD5E1;
+      transform: translateY(-1px);
+    }
+
+    .btn-action-icon svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .btn-invoice:hover {
+      color: var(--success);
+    }
+
+    /* Toast Notification Container */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: #FFFFFF;
+      border: 1px solid #A7F3D0;
+      border-left: 4px solid var(--success);
+      border-radius: 10px;
+      padding: 14px 18px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 320px;
+      max-width: 400px;
+      position: relative;
+      overflow: hidden;
+      animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .toast.toast-hiding {
+      animation: slideOutRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .toast-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #D1FAE5;
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .toast-icon svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .toast-content {
+      flex-grow: 1;
+    }
+
+    .toast-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #065F46;
+    }
+
+    .toast-message {
+      font-size: 0.78rem;
+      color: #047857;
+      margin-top: 2px;
+    }
+
+    .toast-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background-color: var(--success);
+      width: 100%;
+      transform-origin: left;
+      transition: width linear;
+    }
+
+    /* Modal for View Invoice / Edit */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #FFFFFF;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+      overflow: hidden;
+      animation: fadeInUp 0.25s ease-out;
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .modal-body {
+      padding: 20px;
+      font-size: 0.88rem;
+      color: var(--text-main);
+    }
+
+    /* Mobile Backdrop for Sidebar */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      z-index: 35;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .col-customer { grid-column: span 6; }
+      .col-phone { grid-column: span 6; }
+      .col-plate { grid-column: span 4; }
+      .col-model { grid-column: span 4; }
+      .col-status { grid-column: span 4; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        bottom: 0;
+      }
+      .sidebar.open {
+        left: 0;
+      }
+      .sidebar-overlay.open {
+        display: block;
+      }
+      .mobile-menu-btn {
+        display: inline-flex;
+      }
+      .top-bar {
+        padding: 12px 16px;
+      }
+      .content-container {
+        padding: 16px;
+        gap: 18px;
+      }
+      .search-box {
+        display: none;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .col-customer, .col-phone, .col-plate, .col-model, .col-status {
+        grid-column: span 12;
+      }
+      .col-btn {
+        justify-content: stretch;
+      }
+      .btn-primary {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Overlay for Mobile Sidebar -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+
+  <div class="app-layout">
+    <!-- Left Sticky Sidebar -->
+    <aside class="sidebar" id="appSidebar">
+      <!-- Logo & Brand Header -->
+      <div class="brand-header">
+        <div class="brand-icon">
+          <!-- Car & Wrench Combined Icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <path d="M9 17h6"/>
+            <circle cx="17" cy="17" r="2"/>
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">AutoCare Pro</div>
+          <div class="brand-subtitle">Garage Management</div>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="nav-menu">
+        <div class="nav-label">Quản lý chung</div>
+        
+        <a href="#dashboard" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="9" rx="1"/>
+            <rect x="14" y="3" width="7" height="5" rx="1"/>
+            <rect x="14" y="12" width="7" height="9" rx="1"/>
+            <rect x="3" y="16" width="7" height="5" rx="1"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="#intake" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          <span>Tiếp nhận xe</span>
+          <span class="badge-counter" id="navPendingCount">4</span>
+        </a>
+
+        <a href="#repairs" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          <span>Tiến độ sửa chữa</span>
+        </a>
+
+        <div class="nav-label">Vật tư & Tài chính</div>
+
+        <a href="#inventory" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <span>Kho phụ tùng</span>
+        </a>
+
+        <a href="#invoices" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <line x1="10" y1="9" x2="8" y2="9"/>
+          </svg>
+          <span>Hóa đơn</span>
+        </a>
+      </nav>
+
+      <!-- Bottom User Profile Badge (Lễ tân / Receptionist role) -->
+      <div class="user-profile">
+        <div class="avatar-wrapper">
+          <span>LT</span>
+          <span class="avatar-status" title="Đang trực tuyến"></span>
+        </div>
+        <div class="user-info">
+          <span class="user-name">Nguyễn Mai Anh</span>
+          <span class="user-role">Lễ tân tiếp nhận (Front Desk)</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Dynamic Main Content Area -->
+    <main class="main-wrapper">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="mobile-menu-btn" onclick="toggleSidebar(true)" aria-label="Mở menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="page-heading">
+            <h1 class="page-title">
+              Quản lý Điều phối & Tiếp nhận
+              <span class="status-banner-live">
+                <span class="live-dot"></span>
+                Hệ thống sẵn sàng
+              </span>
+            </h1>
+          </div>
+        </div>
+
+        <div class="top-bar-right">
+          <!-- Quick Search Bar (by License Plate) -->
+          <div class="search-box">
+            <span class="search-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <input 
+              type="text" 
+              class="search-input" 
+              id="searchInput" 
+              placeholder="Tìm nhanh theo biển số xe (VD: 30A-999.88)..." 
+              oninput="handleSearch(this.value)"
+            >
+          </div>
+
+          <button class="btn-top-action" onclick="refreshDashboard()" title="Làm mới dữ liệu">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6"></path>
+              <path d="M1 20v-6h6"></path>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            <span>Đồng bộ</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content Container -->
+      <div class="content-container">
+
+        <!-- SECTION 1: Quick Stats Overview (4 KPI Cards with count-up animation) -->
+        <section class="stats-grid animate-fadeInUp" style="animation-delay: 0.05s;">
+          <!-- Card 1: Xe đang chờ -->
+          <div class="stat-card stat-pending">
+            <div class="stat-header">
+              <span class="stat-title">Xe đang chờ</span>
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value" id="kpiWaiting">4</div>
+            <div class="stat-trend">
+              <span class="trend-up">+1</span> so với đầu giờ sáng
+            </div>
+          </div>
+
+          <!-- Card 2: Đang sửa chữa -->
+          <div class="stat-card stat-in-progress">
+            <div class="stat-header">
+              <span class="stat-title">Đang sửa chữa</span>
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value" id="kpiRepairing">7</div>
+            <div class="stat-trend">
+              <span>Đang chiếm 7/8 cầu nâng</span>
+            </div>
+          </div>
+
+          <!-- Card 3: Xe hoàn thành hôm nay -->
+          <div class="stat-card stat-completed">
+            <div class="stat-header">
+              <span class="stat-title">Hoàn thành hôm nay</span>
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value" id="kpiCompleted">12</div>
+            <div class="stat-trend">
+              <span class="trend-up">100%</span> đúng tiến độ cam kết
+            </div>
+          </div>
+
+          <!-- Card 4: Doanh thu ngày -->
+          <div class="stat-card stat-revenue">
+            <div class="stat-header">
+              <span class="stat-title">Doanh thu ngày</span>
+              <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23"></line>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value" id="kpiRevenue">38.5tr</div>
+            <div class="stat-trend">
+              <span class="trend-up">↑ 14%</span> so với mục tiêu ngày
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: Form Tiếp Nhận Xe (Core Feature) -->
+        <section class="form-card animate-fadeInUp" style="animation-delay: 0.12s;">
+          <div class="card-header-styled">
+            <div class="card-title-group">
+              <div class="card-icon-pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="card-title">Tiếp Nhận Xe Vào Xưởng</h2>
+                <p class="card-subtitle">Nhập thông tin khách hàng và tình trạng kiểm tra ban đầu</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-body">
+            <form id="intakeForm" class="intake-form" onsubmit="handleVehicleIntake(event)">
+              <!-- Customer Name -->
+              <div class="form-group col-customer">
+                <label for="custName" class="form-label">
+                  Tên khách hàng <span class="required-star">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <input 
+                    type="text" 
+                    id="custName" 
+                    class="input-field" 
+                    placeholder="VD: Trần Đình Khang" 
+                    required 
+                    autocomplete="name"
+                  >
+                </div>
+              </div>
+
+              <!-- Phone Number -->
+              <div class="form-group col-phone">
+                <label for="custPhone" class="form-label">
+                  Số điện thoại <span class="required-star">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <input 
+                    type="tel" 
+                    id="custPhone" 
+                    class="input-field" 
+                    placeholder="VD: 0988 123 456" 
+                    required 
+                    autocomplete="tel"
+                  >
+                </div>
+              </div>
+
+              <!-- License Plate -->
+              <div class="form-group col-plate">
+                <label for="carPlate" class="form-label">
+                  Biển số xe <span class="required-star">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <input 
+                    type="text" 
+                    id="carPlate" 
+                    class="input-field plate-input" 
+                    placeholder="30A-999.88" 
+                    required
+                  >
+                </div>
+              </div>
+
+              <!-- Car Brand & Model -->
+              <div class="form-group col-model">
+                <label for="carModel" class="form-label">
+                  Hãng & Dòng xe <span class="required-star">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <input 
+                    type="text" 
+                    id="carModel" 
+                    class="input-field" 
+                    placeholder="VD: Mazda CX-5 2.0 Premium" 
+                    required
+                  >
+                </div>
+              </div>
+
+              <!-- Status Selector Dropdown -->
+              <div class="form-group col-status">
+                <label for="initialStatus" class="form-label">
+                  Trạng thái xử lý
+                </label>
+                <div class="input-wrapper">
+                  <select id="initialStatus" class="select-field">
+                    <option value="Chờ kiểm tra">Chờ kiểm tra</option>
+                    <option value="Đang sửa chữa">Đang sửa chữa</option>
+                    <option value="Hoàn thành">Hoàn thành</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Action Button with Ripple & Hover Glow Effect -->
+              <div class="col-btn">
+                <button type="submit" class="btn-primary" id="btnSubmitIntake">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Tiếp nhận xe ngay</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- SECTION 3: Data Table ("Danh sách xe đang xử lý") -->
+        <section class="table-card animate-fadeInUp" style="animation-delay: 0.18s;">
+          <div class="table-actions-header">
+            <div class="card-title-group">
+              <div class="card-icon-pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <line x1="10" y1="9" x2="8" y2="9"></line>
+                </svg>
+              </div>
+              <div>
+                <h2 class="card-title">Danh Sách Xe Đang Xử Lý</h2>
+                <p class="card-subtitle" id="tableRecordCount">Hiện có 5 xe đang ghi nhận trong hệ thống</p>
+              </div>
+            </div>
+
+            <!-- Filter tabs -->
+            <div class="filter-tabs">
+              <button class="filter-tab active" onclick="filterTable('ALL', this)">Tất cả</button>
+              <button class="filter-tab" onclick="filterTable('Chờ kiểm tra', this)">Chờ kiểm tra</button>
+              <button class="filter-tab" onclick="filterTable('Đang sửa chữa', this)">Đang sửa</button>
+              <button class="filter-tab" onclick="filterTable('Hoàn thành', this)">Hoàn thành</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table" id="vehiclesTable">
+              <thead>
+                <tr>
+                  <th>Biển số</th>
+                  <th>Khách hàng</th>
+                  <th>Dòng xe</th>
+                  <th>Thời gian tiếp nhận</th>
+                  <th>Kỹ thuật viên phụ trách</th>
+                  <th>Trạng thái</th>
+                  <th style="text-align: right;">Hành động</th>
+                </tr>
+              </thead>
+              <tbody id="vehicleTableBody">
+                <!-- Row 1: Đang sửa chữa (Yellow/Amber with pulsing glow) -->
+                <tr data-status="Đang sửa chữa" data-plate="30F-882.19">
+                  <td><span class="plate-badge">30F-882.19</span></td>
+                  <td>
+                    <div class="customer-info">
+                      <span class="customer-name">Vũ Hải Đăng</span>
+                      <span class="customer-phone">0912 345 678</span>
+                    </div>
+                  </td>
+                  <td><span class="vehicle-model">Mercedes-Benz C200 (2021)</span></td>
+                  <td>Hôm nay, 08:30</td>
+                  <td>
+                    <div class="mechanic-cell">
+                      <div class="mechanic-avatar">TH</div>
+                      <span class="mechanic-name">Trần Hùng (Tổ trưởng)</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge badge-in-progress" title="Đang trong tiến trình sửa chữa">
+                      <span class="status-badge-dot"></span>
+                      Đang sửa chữa
+                    </span>
+                  </td>
+                  <td>
+                    <div class="table-actions" style="justify-content: flex-end;">
+                      <button class="btn-action-icon" title="Cập nhật tiến độ" onclick="showEditModal('30F-882.19', 'Vũ Hải Đăng')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button class="btn-action-icon btn-invoice" title="Xem hóa đơn dự toán" onclick="showInvoiceModal('30F-882.19', 'Vũ Hải Đăng', '14.800.000 đ')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="12" y1="1" x2="12" y2="23"></line>
+                          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 2: Chờ kiểm tra (Gray/Pending) -->
+                <tr data-status="Chờ kiểm tra" data-plate="51K-673.22">
+                  <td><span class="plate-badge">51K-673.22</span></td>
+                  <td>
+                    <div class="customer-info">
+                      <span class="customer-name">Lê Thị Thảo</span>
+                      <span class="customer-phone">0983 999 221</span>
+                    </div>
+                  </td>
+                  <td><span class="vehicle-model">Hyundai Tucson 2.0 Dầu</span></td>
+                  <td>Hôm nay, 09:15</td>
+                  <td>
+                    <div class="mechanic-cell">
+                      <div class="mechanic-avatar">QM</div>
+                      <span class="mechanic-name">Quốc Mạnh</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge badge-pending">
+                      <span class="status-badge-dot"></span>
+                      Chờ kiểm tra
+                    </span>
+                  </td>
+                  <td>
+                    <div class="table-actions" style="justify-content: flex-end;">
+                      <button class="btn-action-icon" title="Cập nhật tiến độ" onclick="showEditModal('51K-673.22', 'Lê Thị Thảo')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button class="btn-action-icon btn-invoice" title="Xem hóa đơn dự toán" onclick="showInvoiceModal('51K-673.22', 'Lê Thị Thảo', '3.200.000 đ')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="12" y1="1" x2="12" y2="23"></line>
+                          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 3: Hoàn thành (Green/Completed) -->
+                <tr data-status="Hoàn thành" data-plate="29A-345.12">
+                  <td><span class="plate-badge">29A-345.12</span></td>
+                  <td>
+                    <div class="customer-info">
+                      <span class="customer-name">Phạm Hoàng Long</span>
+                      <span class="customer-phone">0904 888 666</span>
+                    </div>
+                  </td>
+                  <td><span class="vehicle-model">Toyota Camry 2.5Q</span></td>
+                  <td>Hôm nay, 07:45</td>
+                  <td>
+                    <div class="mechanic-cell">
+                      <div class="mechanic-avatar">NA</div>
+                      <span class="mechanic-name">Nguyễn Anh</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge badge-completed">
+                      <span class="status-badge-dot"></span>
+                      Hoàn thành
+                    </span>
+                  </td>
+                  <td>
+                    <div class="table-actions" style="justify-content: flex-end;">
+                      <button class="btn-action-icon" title="Cập nhật tiến độ" onclick="showEditModal('29A-345.12', 'Phạm Hoàng Long')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button class="btn-action-icon btn-invoice" title="Xem hóa đơn thanh toán" onclick="showInvoiceModal('29A-345.12', 'Phạm Hoàng Long', '5.450.000 đ')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="12" y1="1" x2="12" y2="23"></line>
+                          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 4: Đang sửa chữa (Yellow/Amber) -->
+                <tr data-status="Đang sửa chữa" data-plate="30G-118.90">
+                  <td><span class="plate-badge">30G-118.90</span></td>
+                  <td>
+                    <div class="customer-info">
+                      <span class="customer-name">Đặng Tiến Dũng</span>
+                      <span class="customer-phone">0977 444 333</span>
+                    </div>
+                  </td>
+                  <td><span class="vehicle-model">Ford Ranger Wildtrak 2.0</span></td>
+                  <td>Hôm nay, 10:00</td>
+                  <td>
+                    <div class="mechanic-cell">
+                      <div class="mechanic-avatar">TH</div>
+                      <span class="mechanic-name">Trần Hùng (Tổ trưởng)</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge badge-in-progress">
+                      <span class="status-badge-dot"></span>
+                      Đang sửa chữa
+                    </span>
+                  </td>
+                  <td>
+                    <div class="table-actions" style="justify-content: flex-end;">
+                      <button class="btn-action-icon" title="Cập nhật tiến độ" onclick="showEditModal('30G-118.90', 'Đặng Tiến Dũng')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button class="btn-action-icon btn-invoice" title="Xem hóa đơn dự toán" onclick="showInvoiceModal('30G-118.90', 'Đặng Tiến Dũng', '8.900.000 đ')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="12" y1="1" x2="12" y2="23"></line>
+                          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 5: Chờ kiểm tra (Pending) -->
+                <tr data-status="Chờ kiểm tra" data-plate="14A-552.88">
+                  <td><span class="plate-badge">14A-552.88</span></td>
+                  <td>
+                    <div class="customer-info">
+                      <span class="customer-name">Bùi Đức Minh</span>
+                      <span class="customer-phone">0936 212 909</span>
+                    </div>
+                  </td>
+                  <td><span class="vehicle-model">VinFast VF8 Plus</span></td>
+                  <td>Hôm nay, 10:20</td>
+                  <td>
+                    <div class="mechanic-cell">
+                      <div class="mechanic-avatar">VL</div>
+                      <span class="mechanic-name">Vũ Luân (Điện - Pin)</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge badge-pending">
+                      <span class="status-badge-dot"></span>
+                      Chờ kiểm tra
+                    </span>
+                  </td>
+                  <td>
+                    <div class="table-actions" style="justify-content: flex-end;">
+                      <button class="btn-action-icon" title="Cập nhật tiến độ" onclick="showEditModal('14A-552.88', 'Bùi Đức Minh')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                      <button class="btn-action-icon btn-invoice" title="Xem hóa đơn dự toán" onclick="showInvoiceModal('14A-552.88', 'Bùi Đức Minh', '1.600.000 đ')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="12" y1="1" x2="12" y2="23"></line>
+                          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Modal View Invoice / Edit -->
+  <div class="modal-backdrop" id="actionModal" onclick="closeModalOnBackdrop(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Chi tiết phiếu xe</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Injected dynamic content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Vanilla JavaScript Implementation -->
+  <script>
+    // Ripple Effect on Click
+    document.querySelectorAll('.btn-primary').forEach(button => {
+      button.addEventListener('click', function(e) {
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple');
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        ripple.style.width = ripple.style.height = `${Math.max(rect.width, rect.height) * 2}px`;
+
+        const existingRipple = this.querySelector('.ripple');
+        if (existingRipple) {
+          existingRipple.remove();
+        }
+
+        this.appendChild(ripple);
+
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      });
+    });
+
+    // Mobile Sidebar Toggle
+    function toggleSidebar(open) {
+      const sidebar = document.getElementById('appSidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (open) {
+        sidebar.classList.add('open');
+        overlay.classList.add('open');
+      } else {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+      }
+    }
+
+    // Dynamic Form Submission (JS)
+    function handleVehicleIntake(e) {
+      e.preventDefault();
+
+      const nameInput = document.getElementById('custName');
+      const phoneInput = document.getElementById('custPhone');
+      const plateInput = document.getElementById('carPlate');
+      const modelInput = document.getElementById('carModel');
+      const statusSelect = document.getElementById('initialStatus');
+
+      const name = nameInput.value.trim();
+      const phone = phoneInput.value.trim();
+      const plate = plateInput.value.trim().toUpperCase();
+      const model = modelInput.value.trim();
+      const status = statusSelect.value;
+
+      if (!name || !phone || !plate || !model) {
+        showToast('Vui lòng điền đầy đủ các thông tin bắt buộc!', 'warning');
+        return;
+      }
+
+      // Generate Initials
+      const nameParts = name.split(' ');
+      const initials = nameParts.length > 1 
+        ? (nameParts[nameParts.length - 2][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+        : name.substring(0, 2).toUpperCase();
+
+      // Determine badge class & dot
+      let badgeClass = 'badge-pending';
+      if (status === 'Đang sửa chữa') badgeClass = 'badge-in-progress';
+      else if (status === 'Hoàn thành') badgeClass = 'badge-completed';
+
+      // Current time
+      const now = new Date();
+      const timeStr = `Hôm nay, ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      // Random mechanic assignment
+      const mechanics = [
+        { initials: 'TH', name: 'Trần Hùng (Tổ trưởng)' },
+        { initials: 'QM', name: 'Quốc Mạnh (Gầm - Máy)' },
+        { initials: 'VL', name: 'Vũ Luân (Điện - Pin)' },
+        { initials: 'NA', name: 'Nguyễn Anh (Bảo dưỡng)' }
+      ];
+      const assignedMech = mechanics[Math.floor(Math.random() * mechanics.length)];
+
+      // Construct New Table Row
+      const tableBody = document.getElementById('vehicleTableBody');
+      const newRow = document.createElement('tr');
+      newRow.className = 'row-newly-added';
+      newRow.setAttribute('data-status', status);
+      newRow.setAttribute('data-plate', plate);
+
+      newRow.innerHTML = `
+        <td><span class="plate-badge">${plate}</span></td>
+        <td>
+          <div class="customer-info">
+            <span class="customer-name">${name}</span>
+            <span class="customer-phone">${phone}</span>
+          </div>
+        </td>
+        <td><span class="vehicle-model">${model}</span></td>
+        <td>${timeStr}</td>
+        <td>
+          <div class="mechanic-cell">
+            <div class="mechanic-avatar">${assignedMech.initials}</div>
+            <span class="mechanic-name">${assignedMech.name}</span>
+          </div>
+        </td>
+        <td>
+          <span class="status-badge ${badgeClass}">
+            <span class="status-badge-dot"></span>
+            ${status}
+          </span>
+        </td>
+        <td>
+          <div class="table-actions" style="justify-content: flex-end;">
+            <button class="btn-action-icon" title="Cập nhật tiến độ" onclick="showEditModal('${plate}', '${name}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+            <button class="btn-action-icon btn-invoice" title="Xem hóa đơn" onclick="showInvoiceModal('${plate}', '${name}', '2.500.000 đ')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </button>
+          </div>
+        </td>
+      `;
+
+      // Prepend newly entered vehicle row
+      tableBody.insertBefore(newRow, tableBody.firstChild);
+
+      // Trigger Toast Notification with auto-dismiss progress bar
+      showToast(`Tiếp nhận xe thành công! Biển số: ${plate}`, 'success');
+
+      // Update KPI counters
+      updateKpisOnIntake(status);
+
+      // Reset form
+      document.getElementById('intakeForm').reset();
+    }
+
+    // Toast Notification with Auto-dismiss Progress Bar
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+
+      const isSuccess = type === 'success';
+      const iconSvg = isSuccess 
+        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+
+      toast.innerHTML = `
+        <div class="toast-icon">${iconSvg}</div>
+        <div class="toast-content">
+          <div class="toast-title">${isSuccess ? 'Tiếp nhận xe thành công!' : 'Thông báo hệ thống'}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+        <div class="toast-progress" id="progress_${Date.now()}"></div>
+      `;
+
+      container.appendChild(toast);
+
+      const duration = 3500;
+      const progressEl = toast.querySelector('.toast-progress');
+      progressEl.style.transition = `width ${duration}ms linear`;
+      
+      requestAnimationFrame(() => {
+        progressEl.style.width = '0%';
+      });
+
+      setTimeout(() => {
+        toast.classList.add('toast-hiding');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, duration);
+    }
+
+    // Update KPIs dynamically
+    function updateKpisOnIntake(status) {
+      const kpiWaiting = document.getElementById('kpiWaiting');
+      const kpiRepairing = document.getElementById('kpiRepairing');
+      const kpiCompleted = document.getElementById('kpiCompleted');
+      const navPending = document.getElementById('navPendingCount');
+      const recordCount = document.getElementById('tableRecordCount');
+
+      if (status === 'Chờ kiểm tra') {
+        const val = parseInt(kpiWaiting.innerText) + 1;
+        kpiWaiting.innerText = val;
+        navPending.innerText = val;
+      } else if (status === 'Đang sửa chữa') {
+        kpiRepairing.innerText = parseInt(kpiRepairing.innerText) + 1;
+      } else if (status === 'Hoàn thành') {
+        kpiCompleted.innerText = parseInt(kpiCompleted.innerText) + 1;
+      }
+
+      const totalRows = document.querySelectorAll('#vehicleTableBody tr').length;
+      recordCount.innerText = `Hiện có ${totalRows} xe đang ghi nhận trong hệ thống`;
+    }
+
+    // Filter Table by Status Tabs
+    function filterTable(status, btnElement) {
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btnElement.classList.add('active');
+
+      const rows = document.querySelectorAll('#vehicleTableBody tr');
+      rows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        if (status === 'ALL' || rowStatus === status) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    // Search by License Plate
+    function handleSearch(query) {
+      const q = query.trim().toUpperCase();
+      const rows = document.querySelectorAll('#vehicleTableBody tr');
+      rows.forEach(row => {
+        const plate = row.getAttribute('data-plate') || '';
+        const name = row.querySelector('.customer-name')?.innerText.toUpperCase() || '';
+        if (plate.includes(q) || name.includes(q)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    // Modals
+    function showEditModal(plate, customer) {
+      const modal = document.getElementById('actionModal');
+      document.getElementById('modalTitle').innerText = `Điều Chỉnh Tiến Độ - ${plate}`;
+      document.getElementById('modalBody').innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div><strong>Khách hàng:</strong> ${customer}</div>
+          <div><strong>Biển kiểm soát:</strong> <span class="plate-badge">${plate}</span></div>
+          <div class="form-group">
+            <label class="form-label">Cập nhật hạng mục hoàn tất:</label>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+              <label><input type="checkbox" checked> Kiểm tra áp suất lốp & độ mòn</label>
+              <label><input type="checkbox" checked> Thay dầu động cơ Castrol Edge 5W-30</label>
+              <label><input type="checkbox"> Căn chỉnh độ chụm bánh xe Hunter 3D</label>
+              <label><input type="checkbox"> Vệ sinh khoang máy & dàn lạnh</label>
+            </div>
+          </div>
+          <button class="btn-primary" style="margin-top: 10px;" onclick="saveProgress('${plate}')">Lưu cập nhật</button>
+        </div>
+      `;
+      modal.classList.add('show');
+    }
+
+    function showInvoiceModal(plate, customer, amount) {
+      const modal = document.getElementById('actionModal');
+      document.getElementById('modalTitle').innerText = `Phiếu Dự Toán / Hóa Đơn - ${plate}`;
+      document.getElementById('modalBody').innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="background: #F8FAFC; border: 1px dashed var(--border); padding: 14px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span style="color: var(--text-muted);">Khách hàng:</span>
+              <strong>${customer}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span style="color: var(--text-muted);">Biển số xe:</span>
+              <strong style="font-family: monospace;">${plate}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span style="color: var(--text-muted);">Thời điểm in:</span>
+              <span>${new Date().toLocaleDateString('vi-VN')}</span>
+            </div>
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 8px 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 1.05rem; font-weight: 700; color: var(--accent);">
+              <span>Tổng thanh toán:</span>
+              <span>${amount}</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px;">
+            <button class="btn-top-action" onclick="closeModal()">Đóng</button>
+            <button class="btn-primary" onclick="printInvoice('${plate}')">In phiếu thu</button>
+          </div>
+        </div>
+      `;
+      modal.classList.add('show');
+    }
+
+    function saveProgress(plate) {
+      closeModal();
+      showToast(`Đã cập nhật tiến độ kỹ thuật cho xe ${plate}!`, 'success');
+    }
+
+    function printInvoice(plate) {
+      closeModal();
+      showToast(`Đang kết nối máy in phiếu thu cho xe ${plate}...`, 'success');
+    }
+
+    function closeModal() {
+      document.getElementById('actionModal').classList.remove('show');
+    }
+
+    function closeModalOnBackdrop(e) {
+      if (e.target.id === 'actionModal') {
+        closeModal();
+      }
+    }
+
+    function refreshDashboard() {
+      showToast('Đồng bộ dữ liệu xưởng thời gian thực hoàn tất!', 'success');
+    }
+  </script>
+</body>
+</html>
